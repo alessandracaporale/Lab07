@@ -5,9 +5,13 @@
 package it.polito.tdp.poweroutages;
 
 import java.net.URL;
+import java.util.*;
+import java.sql.*;
+import it.polito.tdp.poweroutages.DAO.*;
 import java.util.ResourceBundle;
-import it.polito.tdp.poweroutages.model.Model;
-import it.polito.tdp.poweroutages.model.Nerc;
+import it.polito.tdp.poweroutages.model.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
@@ -35,10 +39,28 @@ public class FXMLController {
     private TextArea txtResult; // Value injected by FXMLLoader
 
     private Model model;
+    PowerOutageDAO podao = new PowerOutageDAO();
     
     @FXML
     void doRun(ActionEvent event) {
-    	txtResult.clear();
+    	Nerc nerc = this.cmbNerc.getValue();
+    	int x = Integer.parseInt(txtYears.getText());
+    	int y = Integer.parseInt(this.txtHours.getText());
+    	//txtResult.clear();
+    	
+    	String s = "";
+    	
+    	List<PowerOutage> lista = model.trovaSequenza(nerc, x, y);
+    	if (lista.isEmpty()) {
+    		txtResult.setText("Non ci sono blackout!");
+    	}
+    	else {
+    		for (PowerOutage po : lista) {
+	    		s = s + po.toString() + "\n";
+	    	}
+    		txtResult.setText(s);
+    	}
+    	
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -50,6 +72,14 @@ public class FXMLController {
         
         // Utilizzare questo font per incolonnare correttamente i dati;
         txtResult.setStyle("-fx-font-family: monospace");
+        
+        
+        ObservableList<Nerc> data =FXCollections.observableArrayList();
+        List<Nerc> nerc = podao.getNercList();
+        for (Nerc n : nerc) {
+        	data.add(n);
+        }
+        this.cmbNerc.setItems(data);
     }
     
     public void setModel(Model model) {
